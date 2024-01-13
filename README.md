@@ -18,4 +18,6 @@ Mapped through docker-compose _volumes_ **./app:/app**
 
 ## Start the service
 
+`docker-compose down`
+`docker-compose build`
 `docker-compose up`
