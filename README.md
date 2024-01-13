@@ -8,6 +8,10 @@ Mapped through docker-compose _volumes_ **./app:/app**
 
 `docker-compose run --rm app sh -c "django-admin startproject app ."`
 
+### Create a new app
+
+`docker-compose run --rm app sh -c "python manage.py startapp core"`
+
 ## Run linting
 
 `docker-compose run --rm app sh -c "flake8"`
