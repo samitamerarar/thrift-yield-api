@@ -20,6 +20,10 @@ Mapped through docker-compose _volumes_ **./app:/app**
 
 `docker-compose run --rm app sh -c "python manage.py test"`
 
+## Run custom commands
+
+`docker-compose run --rm app sh -c "python manage.py wait_for_db"`
+
 ## Start the service
 
 `docker-compose down`

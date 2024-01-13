@@ -1,4 +1,6 @@
 [flake8]
+max-line-length = 159
+ignore = F401 # imported but unused warnings
 exclude = 
     migrations,
     __pycache__,
