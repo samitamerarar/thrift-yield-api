@@ -14,11 +14,11 @@ Mapped through docker-compose _volumes_ **./app:/app**
 
 ### Make migrations
 
-add migrations
+add migrations.
 
 `docker-compose run --rm app sh -c "python manage.py makemigrations"`
 
-apply migrations to the database
+apply migrations to the database.
 
 `docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py migrate"`
 
@@ -28,7 +28,7 @@ apply migrations to the database
 
 #### Clear data in Database
 
-clear volume
+clear volume.
 
 `docker volume ls`
 `docker-compose down`
@@ -52,3 +52,8 @@ clear volume
 `docker-compose down`
 `docker-compose build`
 `docker-compose up`
+
+### After modifying requirements.txt
+
+make sure to:
+`docker-compose build`
