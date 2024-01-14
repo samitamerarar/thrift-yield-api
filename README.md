@@ -22,6 +22,10 @@ apply migrations to the database
 
 `docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py migrate"`
 
+#### Create superuser
+
+`docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py createsuperuser"`
+
 #### Clear data in Database
 
 clear volume
