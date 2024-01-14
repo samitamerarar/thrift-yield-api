@@ -12,54 +12,77 @@ Thrift Yield API project.
 
 Mapped through docker-compose _volumes_ **./app:/app**
 
-`docker-compose run --rm app sh -c "django-admin startproject app ."`
+```bash
+docker-compose run --rm app sh -c "django-admin startproject app ."
+```
 
 ### Create a new app
 
-`docker-compose run --rm app sh -c "python manage.py startapp core"`
+```bash
+docker-compose run --rm app sh -c "python manage.py startapp core"
+```
 
 ### Make migrations
 
 add migrations.
 
-`docker-compose run --rm app sh -c "python manage.py makemigrations"`
+```bash
+docker-compose run --rm app sh -c "python manage.py makemigrations"
+```
 
 apply migrations to the database.
 
-`docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py migrate"`
+```bash
+docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py migrate"
+```
 
 #### Create superuser
 
-`docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py createsuperuser"`
+```bash
+docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py createsuperuser"
+```
 
 #### Clear data in Database
 
 clear volume.
 
-`docker volume ls`
-`docker-compose down`
-`docker volume rm thrift-yield-api_dev-db-data`
-`docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py migrate"`
+```bash
+docker volume ls
+docker-compose down
+docker volume rm thrift-yield-api_dev-db-data
+docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py migrate"
+```
 
 ## Run linting
 
-`docker-compose run --rm app sh -c "flake8"`
+```bash
+docker-compose run --rm app sh -c "flake8"
+```
 
 ## Run test
 
-`docker-compose run --rm app sh -c "python manage.py test"`
+```bash
+docker-compose run --rm app sh -c "python manage.py test"
+```
 
 ## Run custom commands
 
-`docker-compose run --rm app sh -c "python manage.py wait_for_db"`
+```bash
+docker-compose run --rm app sh -c "python manage.py wait_for_db"
+```
 
 ## Start the service
 
-`docker-compose down`
-`docker-compose build`
-`docker-compose up`
+```bash
+docker-compose down
+docker-compose build
+docker-compose up
+```
 
 ### After modifying requirements.txt
 
 make sure to:
-`docker-compose build`
+
+```bash
+docker-compose build
+```
