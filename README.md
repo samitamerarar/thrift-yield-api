@@ -2,6 +2,12 @@
 
 Thrift Yield API project.
 
+## Django Admin
+
+[Django Admin](http://localhost:8000/admin/)
+
+[Swagger Documentation (drf-spectacular)](http://localhost:8000/api/docs/)
+
 ## Create Project
 
 Mapped through docker-compose _volumes_ **./app:/app**
