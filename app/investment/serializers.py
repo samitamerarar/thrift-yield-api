@@ -24,19 +24,33 @@ class InvestmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'ticker', 'link', 'tags']
         read_only_fields = ['id']
 
+    def _get_or_create_tags(self, tags, investment):
+        """Handle getting or creating tags as needed."""
+        auth_user = self.context['request'].user
+        for tag in tags:
+            tag_obj, created = Tag.objects.get_or_create(user=auth_user, **tag)
+            investment.tags.add(tag_obj)
+
     def create(self, validated_data):
         """Create a investment."""
         tags = validated_data.pop('tags', [])
         investment = Investment.objects.create(**validated_data)
-        auth_user = self.context['request'].user
-        for tag in tags:
-            tag_obj, created = Tag.objects.get_or_create(
-                user=auth_user,
-                **tag,
-            )
-            investment.tags.add(tag_obj)
+        self._get_or_create_tags(tags, investment)
 
         return investment
+
+    def update(self, instance, validated_data):
+        """Update investment."""
+        tags = validated_data.pop('tags', None)
+        if tags is not None:
+            instance.tags.clear()
+            self._get_or_create_tags(tags, instance)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class InvestmentDetailSerializer(InvestmentSerializer):

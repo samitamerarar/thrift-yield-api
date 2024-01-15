@@ -233,3 +233,44 @@ class PrivateInvestmentApiTests(TestCase):
                 user=self.user,
             ).exists()
             self.assertTrue(exists)
+
+    # updating tags on investments
+    def test_create_tag_on_update(self):
+        """Test create tag when updating a investment."""
+        investment = create_investment(user=self.user)
+
+        payload = {'tags': [{'name': 'Crypto'}]}
+        url = detail_url(investment.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_tag = Tag.objects.get(user=self.user, name='Crypto')
+        self.assertIn(new_tag, investment.tags.all())
+
+    def test_update_investment_assign_tag(self):
+        """Test assigning an existing tag when updating a investment."""
+        tag_crypto = Tag.objects.create(user=self.user, name='Crypto')
+        investment = create_investment(user=self.user)
+        investment.tags.add(tag_crypto)
+
+        tag_etf = Tag.objects.create(user=self.user, name='ETF')
+        payload = {'tags': [{'name': 'ETF'}]}
+        url = detail_url(investment.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(tag_etf, investment.tags.all())
+        self.assertNotIn(tag_crypto, investment.tags.all())
+
+    def test_clear_investment_tags(self):
+        """Test clearing a investments tags."""
+        tag = Tag.objects.create(user=self.user, name='Crypto')
+        investment = create_investment(user=self.user)
+        investment.tags.add(tag)
+
+        payload = {'tags': []}
+        url = detail_url(investment.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(investment.tags.count(), 0)
