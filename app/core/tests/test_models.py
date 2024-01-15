@@ -2,11 +2,26 @@
 Tests for models.
 """
 from decimal import Decimal
+from datetime import datetime
 
 from django.test import TestCase
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from core import models
+
+
+def create_investment(user, **params):
+    """Create and return a sample investment."""
+    defaults = {
+        'ticker': 'TSLA',
+        'description': 'Sample description',
+        'link': 'http://example.com/investment.pdf',
+    }
+    defaults.update(params)
+
+    investment = models.Investment.objects.create(user=user, **defaults)
+    return investment
 
 
 def create_user(email='user@example.com', password='password123'):
@@ -78,3 +93,22 @@ class ModelTests(TestCase):
         tag = models.Tag.objects.create(user=user, name='Tag1')
 
         self.assertEqual(str(tag), tag.name)
+
+    # activities for investments
+    def test_create_activity(self):
+        """Test creating an activity is successful."""
+        user = create_user()
+        investment = create_investment(user=user)
+
+        naive_trade_datetime = datetime(2024, 1, 30)
+        aware_datetime = timezone.make_aware(naive_trade_datetime, timezone=timezone.get_current_timezone())
+        activity = models.Activity.objects.create(
+            user=user,
+            investment=investment,
+            trade_date=aware_datetime,
+            shares=10,
+            cost_per_share=5,
+            activity_type='BUY',
+        )
+
+        self.assertEqual(str(activity), 'BUY - TSLA')

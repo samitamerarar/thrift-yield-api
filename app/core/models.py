@@ -64,3 +64,23 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Activity(models.Model):
+    """Trading activities for investments."""
+    ACTIVITY_CHOICES = [
+        ('BUY', 'Buy'),
+        ('SELL', 'Sell'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    investment = models.ForeignKey(Investment, on_delete=models.CASCADE)
+    trade_date = models.DateTimeField()
+    shares = models.IntegerField()
+    cost_per_share = models.DecimalField(max_digits=10, decimal_places=2)
+    activity_type = models.CharField(max_length=4, choices=ACTIVITY_CHOICES)
+    commission = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.activity_type} - {self.investment}"
