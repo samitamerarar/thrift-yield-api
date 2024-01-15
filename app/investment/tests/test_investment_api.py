@@ -10,7 +10,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Investment
+from core.models import Investment, Tag
 
 from investment.serializers import InvestmentSerializer, InvestmentDetailSerializer
 
@@ -190,3 +190,46 @@ class PrivateInvestmentApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Investment.objects.filter(id=investment.id).exists())
+
+    # add tags to investments tests
+    def test_create_investment_with_new_tags(self):
+        """Test creating a investment with new tags."""
+        payload = {
+            'ticker': 'IVV',
+            'tags': [{'name': 'ETF'}, {'name': 'High Risk'}],
+        }
+        res = self.client.post(INVESTMENTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        investments = Investment.objects.filter(user=self.user)
+        self.assertEqual(investments.count(), 1)
+        investment = investments[0]
+        self.assertEqual(investment.tags.count(), 2)
+        for tag in payload['tags']:
+            exists = investment.tags.filter(
+                name=tag['name'],
+                user=self.user,
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_investment_with_existing_tags(self):
+        """Test creating a investment with existing tag."""
+        tag_crypto = Tag.objects.create(user=self.user, name='Crypto')
+        payload = {
+            'ticker': 'BTC',
+            'tags': [{'name': 'Crypto'}, {'name': 'High Risk'}],
+        }
+        res = self.client.post(INVESTMENTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        investments = Investment.objects.filter(user=self.user)
+        self.assertEqual(investments.count(), 1)
+        investment = investments[0]
+        self.assertEqual(investment.tags.count(), 2)
+        self.assertIn(tag_crypto, investment.tags.all())
+        for tag in payload['tags']:
+            exists = investment.tags.filter(
+                name=tag['name'],
+                user=self.user,
+            ).exists()
+            self.assertTrue(exists)
