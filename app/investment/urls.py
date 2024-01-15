@@ -10,6 +10,7 @@ from investment import views
 
 router = DefaultRouter()
 router.register('investments', views.InvestmentViewSet)
+router.register('tags', views.TagViewSet)
 
 app_name = 'investment'
 

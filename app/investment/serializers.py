@@ -3,7 +3,7 @@ Serializers for investment APIs
 """
 from rest_framework import serializers
 
-from core.models import Investment
+from core.models import Investment, Tag
 
 
 class InvestmentSerializer(serializers.ModelSerializer):
@@ -20,3 +20,12 @@ class InvestmentDetailSerializer(InvestmentSerializer):
 
     class Meta(InvestmentSerializer.Meta):
         fields = InvestmentSerializer.Meta.fields + ['description']
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Serializer for tags."""
+
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
+        read_only_fields = ['id']
