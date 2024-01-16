@@ -19,6 +19,11 @@ from investment.serializers import ActivitySerializer
 ACTIVITIES_URL = reverse('investment:activity-list')
 
 
+def detail_url(activity_id):
+    """Create and return an activity detail URL."""
+    return reverse('investment:activity-detail', args=[activity_id])
+
+
 def create_activity(user, investment, **params):
     """Create and return a sample activity."""
     naive_trade_datetime = datetime(2024, 1, 30)
@@ -101,3 +106,15 @@ class PrivateActivitiesApiTests(TestCase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['shares'], activity.shares)
         self.assertEqual(res.data[0]['id'], activity.id)
+
+    def test_update_activity(self):
+        """Test updating an activity."""
+        activity = create_activity(user=self.user, investment=self.investment)
+
+        payload = {'shares': 9}
+        url = detail_url(activity.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        activity.refresh_from_db()
+        self.assertEqual(activity.shares, payload['shares'])
