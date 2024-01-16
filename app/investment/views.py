@@ -44,7 +44,8 @@ class TagViewSet(mixins.DestroyModelMixin, mixins.UpdateModelMixin, mixins.ListM
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
 
-class ActivityViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+class ActivityViewSet(
+        mixins.DestroyModelMixin, mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     """Manage activities in the database."""
     serializer_class = serializers.ActivitySerializer
     queryset = Activity.objects.all()

@@ -118,3 +118,14 @@ class PrivateActivitiesApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         activity.refresh_from_db()
         self.assertEqual(activity.shares, payload['shares'])
+
+    def test_delete_activity(self):
+        """Test deleting an activity."""
+        activity = create_activity(user=self.user, investment=self.investment, shares=5)
+
+        url = detail_url(activity.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        activities = Activity.objects.filter(user=self.user)
+        self.assertFalse(activities.exists())
