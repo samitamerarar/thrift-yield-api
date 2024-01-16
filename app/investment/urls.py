@@ -11,6 +11,7 @@ from investment import views
 router = DefaultRouter()
 router.register('investments', views.InvestmentViewSet)
 router.register('tags', views.TagViewSet)
+router.register('activities', views.ActivityViewSet)
 
 app_name = 'investment'
 

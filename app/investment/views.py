@@ -5,7 +5,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Investment, Tag
+from core.models import Investment, Tag, Activity
 from investment import serializers
 
 
@@ -42,3 +42,15 @@ class TagViewSet(mixins.DestroyModelMixin, mixins.UpdateModelMixin, mixins.ListM
     def get_queryset(self):
         """Filter queryset to authenticated user."""
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+
+class ActivityViewSet(viewsets.ModelViewSet):
+    """Manage activities in the database."""
+    serializer_class = serializers.ActivitySerializer
+    queryset = Activity.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Retrieve activities for authenticated user."""
+        return self.queryset.filter(user=self.request.user).order_by('-trade_date')
