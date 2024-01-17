@@ -82,4 +82,14 @@ class InvestmentDetailSerializer(InvestmentSerializer):
     """Serializer for investment detail view."""
 
     class Meta(InvestmentSerializer.Meta):
-        fields = InvestmentSerializer.Meta.fields + ['description']
+        fields = InvestmentSerializer.Meta.fields + ['description', 'image']
+
+
+class InvestmentImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to investments."""
+
+    class Meta:
+        model = Investment
+        fields = ['id', 'image']
+        read_only_fields = ['id']
+        extra_kwargs = {'image': {'required': 'True'}}
