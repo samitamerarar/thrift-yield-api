@@ -74,7 +74,7 @@ class Activity(models.Model):
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    investment = models.ForeignKey(Investment, on_delete=models.CASCADE)
+    investment = models.ForeignKey(Investment, on_delete=models.CASCADE, related_name='activities')
     trade_date = models.DateTimeField()
     shares = models.IntegerField()
     cost_per_share = models.DecimalField(max_digits=10, decimal_places=2)
@@ -83,4 +83,4 @@ class Activity(models.Model):
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.activity_type} - {self.investment}"
+        return f"{self.activity_type} - {self.investment} - shares: {self.shares}"

@@ -2,7 +2,9 @@
 Tests for investment APIs.
 """
 from decimal import Decimal
+from datetime import datetime
 
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -10,7 +12,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Investment, Tag
+from core.models import Investment, Tag, Activity
 
 from investment.serializers import InvestmentSerializer, InvestmentDetailSerializer
 
@@ -21,6 +23,23 @@ INVESTMENTS_URL = reverse('investment:investment-list')
 def detail_url(investment_id):
     """Create and return a investment detail URL."""
     return reverse('investment:investment-detail', args=[investment_id])
+
+
+def create_activity(user, investment, **params):
+    """Create and return a sample activity."""
+    naive_trade_datetime = datetime(2024, 1, 30)
+    aware_datetime = timezone.make_aware(naive_trade_datetime, timezone=timezone.get_current_timezone())
+    defaults = {
+        'trade_date': aware_datetime,
+        'shares': 10,
+        'cost_per_share': 5,
+        'activity_type': 'BUY',
+    }
+
+    defaults.update(params)
+
+    activity = Activity.objects.create(user=user, investment=investment, **defaults)
+    return activity
 
 
 def create_investment(user, **params):
@@ -274,3 +293,122 @@ class PrivateInvestmentApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(investment.tags.count(), 0)
+
+    # add activities to investments tests
+    def test_create_investment_with_new_activities(self):
+        """Test creating an investment with new activities."""
+        payload = {
+            'ticker': 'TSLA2',
+            'description': 'Sample description',
+            'link': 'http://example.com/investment.pdf',
+            'activities': [
+                {
+                    'trade_date': '2024-01-30T00:00:00Z',
+                    'shares': 10,
+                    'cost_per_share': 5,
+                    'activity_type': 'BUY'
+                },
+                {
+                    'trade_date': '2024-01-30T00:00:00Z',
+                    'shares': 8,
+                    'cost_per_share': 3,
+                    'activity_type': 'BUY'
+                }
+            ],
+        }
+        res = self.client.post(INVESTMENTS_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        investments = Investment.objects.filter(user=self.user)
+        self.assertEqual(investments.count(), 1)
+        investment = investments[0]
+        self.assertEqual(investment.activities.count(), 2)
+        for activity in payload['activities']:
+            exists = investment.activities.filter(
+                investment=investment,
+                user=self.user,
+                trade_date=activity['trade_date'],
+                shares=activity['shares'],
+                cost_per_share=activity['cost_per_share'],
+                activity_type=activity['activity_type'],
+            ).exists()
+            self.assertTrue(exists)
+
+        payload2 = {
+            'activities': [
+                {
+                    'trade_date': '2024-01-25T00:00:00Z',
+                    'shares': 15,
+                    'cost_per_share': 2,
+                    'activity_type': 'BUY'
+                }
+            ],
+        }
+        url = detail_url(investment.id)
+        res = self.client.patch(url, payload2, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_activity = Activity.objects.get(user=self.user, trade_date='2024-01-25T00:00:00Z', shares=15)
+        self.assertIn(new_activity, investment.activities.all())
+
+    def test_create_activity_on_investment_update(self):
+        """Test creating an activity when updating an investment."""
+        investment = create_investment(user=self.user)
+
+        payload = {
+            'activities': [
+                {
+                    'trade_date': '2024-01-25T00:00:00Z',
+                    'shares': 15,
+                    'cost_per_share': 2,
+                    'activity_type': 'BUY'
+                }
+            ],
+        }
+        url = detail_url(investment.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_activity = Activity.objects.get(user=self.user, trade_date='2024-01-25T00:00:00Z', shares=15)
+        self.assertIn(new_activity, investment.activities.all())
+
+    def test_update_investment_with_new_activities(self):
+        """Test creating an investment with new activities."""
+        create_payload = {
+            'ticker': 'TSLA2',
+            'description': 'Sample description',
+            'link': 'http://example.com/investment.pdf',
+            'activities': [
+                {
+                    'trade_date': '2024-01-30T00:00:00Z',
+                    'shares': 10,
+                    'cost_per_share': 5,
+                    'activity_type': 'BUY'
+                },
+                {
+                    'trade_date': '2024-01-30T00:00:00Z',
+                    'shares': 8,
+                    'cost_per_share': 3,
+                    'activity_type': 'BUY'
+                }
+            ],
+        }
+        res = self.client.post(INVESTMENTS_URL, create_payload, format='json')
+        investments = Investment.objects.filter(user=self.user)
+        investment = investments[0]
+
+        update_payload = {
+            'activities': [
+                {
+                    'trade_date': '2024-01-25T00:00:00Z',
+                    'shares': 15,
+                    'cost_per_share': 2,
+                    'activity_type': 'BUY'
+                }
+            ],
+        }
+        url = detail_url(investment.id)
+        res = self.client.patch(url, update_payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(investment.activities.all().count(), 3)

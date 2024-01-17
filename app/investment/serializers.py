@@ -11,7 +11,7 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
-        fields = ['id', 'investment', 'trade_date', 'shares', 'cost_per_share', 'activity_type']
+        fields = ['id', 'trade_date', 'shares', 'cost_per_share', 'activity_type']
         read_only_fields = ['id']
 
 
@@ -27,33 +27,49 @@ class TagSerializer(serializers.ModelSerializer):
 class InvestmentSerializer(serializers.ModelSerializer):
     """Serializer for investments."""
     tags = TagSerializer(many=True, required=False)
+    activities = ActivitySerializer(many=True, required=False)
 
     class Meta:
         model = Investment
-        fields = ['id', 'ticker', 'link', 'tags']
+        fields = ['id', 'ticker', 'link', 'tags', 'activities']
         read_only_fields = ['id']
 
-    def _get_or_create_tags(self, tags, investment):
+    def _get_or_create_tags(self, tags_data, investment):
         """Handle getting or creating tags as needed."""
         auth_user = self.context['request'].user
-        for tag in tags:
-            tag_obj, created = Tag.objects.get_or_create(user=auth_user, **tag)
+        for tag_data in tags_data:
+            tag_obj, created = Tag.objects.get_or_create(user=auth_user, **tag_data)
             investment.tags.add(tag_obj)
 
+    def _create_activities(self, activities_data, investment):
+        """Handle getting or creating tags as needed."""
+        auth_user = self.context['request'].user
+        for activity_data in activities_data:
+            Activity.objects.create(user=auth_user, investment=investment, **activity_data)
+
     def create(self, validated_data):
-        """Create a investment."""
-        tags = validated_data.pop('tags', [])
+        """Create an investment with tags and activities."""
+        tags_data = validated_data.pop('tags', [])
+        activities_data = validated_data.pop('activities', [])
+
         investment = Investment.objects.create(**validated_data)
-        self._get_or_create_tags(tags, investment)
+
+        self._get_or_create_tags(tags_data, investment)
+        self._create_activities(activities_data, investment)
 
         return investment
 
     def update(self, instance, validated_data):
         """Update investment."""
-        tags = validated_data.pop('tags', None)
-        if tags is not None:
+        tags_data = validated_data.pop('tags', None)
+        activities_data = validated_data.pop('activities', None)
+
+        if tags_data is not None:
             instance.tags.clear()
-            self._get_or_create_tags(tags, instance)
+            self._get_or_create_tags(tags_data, instance)
+
+        if activities_data is not None:
+            self._create_activities(activities_data, instance)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

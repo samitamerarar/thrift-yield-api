@@ -111,4 +111,4 @@ class ModelTests(TestCase):
             activity_type='BUY',
         )
 
-        self.assertEqual(str(activity), 'BUY - TSLA')
+        self.assertEqual(str(activity), 'BUY - TSLA - shares: 10')
